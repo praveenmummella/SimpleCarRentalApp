@@ -18,7 +18,7 @@ phases:
     commands:
       - echo "Build complete. JaCoCo report should be in target/site/jacoco/index.html"
       - echo "Uploading JaCoCo report to S3..."
-      - aws s3 cp target/site/jacoco/index.html s3://codepipeline-us-east-1-7f42f5116fdb-4981-b6cc-d62285290805/SimpleCarRentalApp-P/reports/jacoco/index.html
+      - aws s3 cp target/site/jacoco/index.html s3://codepipeline-us-east-1-7f42f5116fdb-4981-b6cc-d62285290805/SimpleCarRentalApp-P/reports/jacoco/index.html --sse aws:kms
       - echo "Sending SNS notification..."
       - |
         REPORT_URL="https://s3.amazonaws.com/codepipeline-us-east-1-7f42f5116fdb-4981-b6cc-d62285290805/SimpleCarRentalApp-P/reports/jacoco/index.html"

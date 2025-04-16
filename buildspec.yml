@@ -5,12 +5,22 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - echo Installing Maven...
+      - echo "Installing Maven..."
       - apt-get update && apt-get install -y maven
+      - mvn -v
+
   build:
     commands:
-      - echo Building the Java project...
-      - mvn clean package
+      - echo "Running Maven clean verify for JaCoCo and tests..."
+      - mvn clean verify
+
+  post_build:
+    commands:
+      - echo "Build complete. JaCoCo report should be in target/site/jacoco/index.html"
+
 artifacts:
   files:
     - target/*.war
+    - target/site/jacoco/**/*
+
+  discard-paths: no

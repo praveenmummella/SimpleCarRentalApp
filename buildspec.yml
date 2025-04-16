@@ -1,5 +1,55 @@
 version: 0.2
 
+env:
+  variables:
+    REPORT_BUCKET: codepipeline-us-east-1-7f42f5116fdb-4981-b6cc-d62285290805
+    REPORT_PATH: SimpleCarRentalApp-P/reports
+    SNS_TOPIC_ARN: arn:aws:sns:us-east-1:<your-account-id>:<your-topic-name>
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - echo Installing dependencies...
+      - apt-get update
+      - apt-get install -y unzip wget
+      - wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
+      - unzip dependency-check-8.4.0-release.zip -d /opt
+      - mv /opt/dependency-check* /opt/dependency-check
+  pre_build:
+    commands:
+      - echo Running OWASP Dependency-Check...
+      - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out $REPORT_PATH/dependency-check
+  build:
+    commands:
+      - echo Running Maven Build with JaCoCo...
+      - mvn clean verify
+  post_build:
+    commands:
+      - echo Uploading reports to S3...
+      - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive
+      - aws s3 cp $REPORT_PATH/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive
+
+      # Generate presigned URL for JaCoCo report
+      - echo Generating presigned URL for JaCoCo report...
+      - export JACOCO_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/index.html --expires-in 86400)
+
+      # Send success notification
+      - |
+        aws sns publish \
+          --topic-arn "$SNS_TOPIC_ARN" \
+          --subject "✅ CodeBuild Success: SimpleCarRentalApp" \
+          --message "CodeBuild completed successfully.\n\n📊 JaCoCo Report:\n$JACOCO_URL"
+
+reports:
+  jacoco:
+    files:
+      - target/site/jacoco/index.html
+    base-directory: target/site/jacoco
+    discard-paths: yes
+version: 0.2
+
 phases:
   install:
     runtime-versions:

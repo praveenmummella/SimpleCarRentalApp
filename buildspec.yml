@@ -20,7 +20,17 @@ phases:
   pre_build:
     commands:
       - echo Running OWASP Dependency-Check...
-      - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out $REPORT_PATH/dependency-check
+        pre_build:
+    commands:
+      - echo Running OWASP Dependency-Check...
+      - |
+        /opt/dependency-check/bin/dependency-check.sh \
+          --project "SimpleCarRentalApp" \
+          --scan . \
+          --format HTML \
+          --out $REPORT_PATH/dependency-check \
+          --disableCentral
+
 
   build:
     commands:

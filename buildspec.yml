@@ -39,7 +39,7 @@ phases:
       - echo "Sending SNS notification with report link..."
       - export MESSAGE="✅ CodeBuild succeeded for *SimpleCarRentalApp*.\n\n📊 View JaCoCo Report: $JACOCO_URL"
       - aws sns publish \
-          --topic-arn "$SNS_TOPIC_ARN" \
+          --topic-arn "arn:aws:sns:us-east-1:637061300326:SimpleCarRentalApp-CodeBuild-Notifications" \
           --subject "✅ CodeBuild Success: SimpleCarRentalApp" \
           --message "$MESSAGE"
 

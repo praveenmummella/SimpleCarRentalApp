@@ -16,6 +16,7 @@ phases:
       - apt-get install -y unzip wget zip
       - wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
       - unzip dependency-check-8.4.0-release.zip -d /opt
+      - mv /opt/dependency-check* /opt/dependency-check
 
   pre_build:
     commands:
@@ -32,6 +33,12 @@ phases:
     commands:
       - echo Running Maven Build with JaCoCo...
       - mvn clean verify
+
+      - echo Fetching SonarCloud token from AWS SSM Parameter Store...
+      - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
+
+      - echo Running SonarCloud analysis...
+      - mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN
 
   post_build:
     commands:
@@ -53,7 +60,7 @@ phases:
 
       - echo "Sending combined SNS notification with both report links..."
       - >
-        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check Report (SCA): $SCA_URL" && 
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 JaCoCo Report: $JACOCO_ZIP_URL\n\n🔍 Dependency-Check (SCA): $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp" && 
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: All Reports Ready" \

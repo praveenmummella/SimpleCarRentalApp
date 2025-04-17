@@ -4,30 +4,27 @@ env:
   variables:
     REPORT_BUCKET: simplecarrentalapp-devsecops-reports
     REPORT_PATH: SimpleCarRentalApp-P/reports
-    SNS_TOPIC_ARN: arn:aws:sns:us-east-1:637061300326:SimpleCarRentalApp-CodeBuild-Notifications
+    SNS_TOPIC_ARN: arn:aws:sns:us-east-1:<your-account-id>:<your-topic-name>
 
 phases:
   install:
     runtime-versions:
       java: corretto11
     commands:
-      - echo "Installing required tools..."
-      - apt-get update && apt-get install -y unzip wget maven
-      - mvn -v
+      - echo Installing dependencies...
+      - apt-get update
+      - apt-get install -y unzip wget
       - wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
       - unzip dependency-check-8.4.0-release.zip -d /opt
-
   pre_build:
     commands:
-      - echo "Running OWASP Dependency-Check..."
+      - echo Running OWASP Dependency-Check...
       - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out $REPORT_PATH/dependency-check
-
   build:
     commands:
-      - echo "Running Maven build and tests with JaCoCo..."
+      - echo Running Maven Build with JaCoCo...
       - mvn clean verify
-
-    post_build:
+  post_build:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive
@@ -37,22 +34,22 @@ phases:
       - export JACOCO_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/index.html --expires-in 86400)
 
       - echo "Sending SNS notification with report link..."
-      - export MESSAGE="✅ CodeBuild succeeded for *SimpleCarRentalApp*.\n\n📊 View JaCoCo Report: $JACOCO_URL"
-      - aws sns publish \
-          --topic-arn "arn:aws:sns:us-east-1:637061300326:SimpleCarRentalApp-CodeBuild-Notifications" \
+      - |
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📊 View JaCoCo Report: $JACOCO_URL"
+        aws sns publish \
+          --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: SimpleCarRentalApp" \
           --message "$MESSAGE"
-
 
 artifacts:
   files:
     - target/*.war
     - target/site/jacoco/**/* # optional; these are also uploaded to S3 manually
   discard-paths: no
-
+  
 reports:
   jacoco:
     files:
-      - index.html
+      - target/site/jacoco/index.html
     base-directory: target/site/jacoco
     discard-paths: yes

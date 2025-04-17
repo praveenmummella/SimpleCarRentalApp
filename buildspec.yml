@@ -27,7 +27,7 @@ phases:
       - echo "Running Maven build and tests with JaCoCo..."
       - mvn clean verify
 
-  post_build:
+    post_build:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive
@@ -37,14 +37,12 @@ phases:
       - export JACOCO_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/index.html --expires-in 86400)
 
       - echo "Sending SNS notification with report link..."
-      - |
-        MESSAGE="✅ CodeBuild succeeded for *SimpleCarRentalApp*.
-
-📊 View JaCoCo Report: $JACOCO_URL"
-        aws sns publish \
+      - export MESSAGE="✅ CodeBuild succeeded for *SimpleCarRentalApp*.\n\n📊 View JaCoCo Report: $JACOCO_URL"
+      - aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: SimpleCarRentalApp" \
           --message "$MESSAGE"
+
 
 artifacts:
   files:

@@ -48,15 +48,11 @@ phases:
 
       - echo "Sending SNS notification with zipped report..."
       - |
-        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.
-
-📦 JaCoCo Report (ZIP): $JACOCO_ZIP_URL
-
-🔍 Dependency-Check Report (SCA): $SCA_URL"
-      aws sns publish \
-        --topic-arn "$SNS_TOPIC_ARN" \
-        --subject "✅ CodeBuild Success: All Reports Ready" \
-        --message "$MESSAGE"
+       export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL \n\n Dependency-Check Report (SCA): $SCA_URL""
+         aws sns publish \
+           --topic-arn "$SNS_TOPIC_ARN" \
+           --subject "✅ CodeBuild Success: JaCoCo Zipped Report" \
+           --message "$MESSAGE"
 
 reports:
   jacoco:

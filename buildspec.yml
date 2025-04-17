@@ -20,7 +20,8 @@ phases:
   pre_build:
     commands:
       - echo Running OWASP Dependency-Check...
-      - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out $REPORT_PATH/dependency-check
+      - mkdir -p dependency-check-report
+      - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out dependency-check-report
 
   build:
     commands:
@@ -31,14 +32,19 @@ phases:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
-      - aws s3 cp $REPORT_PATH/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
+      - aws s3 cp dependency-check-report/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
 
-      - echo "Generating presigned URL for JaCoCo report..."
+      - echo "Generating presigned URLs for JaCoCo and SCA reports..."
       - export JACOCO_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/index.html --expires-in 86400)
+      - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
 
-      - echo "Sending SNS notification with report link..."
+      - echo "Sending SNS notification with report links..."
       - |
-        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📊 View JaCoCo Report: $JACOCO_URL"
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.
+
+📊 View JaCoCo Report: $JACOCO_URL
+
+🛡️ View Dependency-Check (SCA) Report: $SCA_URL"
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: SimpleCarRentalApp" \
@@ -55,4 +61,5 @@ artifacts:
   files:
     - target/*.war
     - target/site/jacoco/**/*
+    - dependency-check-report/**/*
   discard-paths: no

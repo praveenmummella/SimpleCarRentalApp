@@ -13,15 +13,14 @@ phases:
     commands:
       - echo Installing dependencies...
       - apt-get update
-      - apt-get install -y unzip wget
+      - apt-get install -y unzip wget zip
       - wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
       - unzip dependency-check-8.4.0-release.zip -d /opt
 
   pre_build:
     commands:
       - echo Running OWASP Dependency-Check...
-      - mkdir -p dependency-check-report
-      - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out dependency-check-report
+      - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out $REPORT_PATH/dependency-check
 
   build:
     commands:
@@ -32,22 +31,23 @@ phases:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
-      - aws s3 cp dependency-check-report/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
+      - aws s3 cp $REPORT_PATH/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
 
-      - echo "Generating presigned URLs for JaCoCo and SCA reports..."
-      - export JACOCO_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/index.html --expires-in 86400)
-      - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
+      - echo "Zipping JaCoCo report for easier navigation..."
+      - zip -r jacoco-report.zip target/site/jacoco/
 
-      - echo "Sending SNS notification with report links..."
+      - echo "Uploading zipped report to S3..."
+      - aws s3 cp jacoco-report.zip s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --sse AES256
+
+      - echo "Generating presigned URL for zipped report..."
+      - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --expires-in 86400)
+
+      - echo "Sending SNS notification with zipped report..."
       - |
-        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.
-
-📊 View JaCoCo Report: $JACOCO_URL
-
-🛡️ View Dependency-Check (SCA) Report: $SCA_URL"
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL"
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
-          --subject "✅ CodeBuild Success: SimpleCarRentalApp" \
+          --subject "✅ CodeBuild Success: JaCoCo Zipped Report" \
           --message "$MESSAGE"
 
 reports:
@@ -61,5 +61,4 @@ artifacts:
   files:
     - target/*.war
     - target/site/jacoco/**/*
-    - dependency-check-report/**/*
   discard-paths: no

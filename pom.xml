@@ -48,7 +48,7 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo Plugin -->
+            <!-- ✅ JaCoCo Plugin (includes XML report for SonarCloud) -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -66,6 +66,20 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
+                    <!-- ✅ XML report generation -->
+                    <execution>
+                        <id>report-xml</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
+                            <reports>
+                                <report>xml</report>
+                            </reports>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -79,7 +93,7 @@
                 </configuration>
             </plugin>
 
-            <!-- ✅ SonarCloud Plugin -->
+            <!-- SonarCloud Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -90,7 +104,7 @@
     </build>
 
     <dependencies>
-        <!-- ✅ CORRECT Servlet API for javax.servlet -->
+        <!-- Servlet API -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -98,7 +112,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JUnit 5 for unit testing -->
+        <!-- JUnit 5 -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

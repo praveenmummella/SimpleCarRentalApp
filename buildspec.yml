@@ -36,8 +36,10 @@ phases:
       - echo Fetching SonarCloud token from AWS SSM Parameter Store...
       - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
 
-      - echo Running SonarCloud analysis...
-      - mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN
+      - echo Running SonarCloud analysis with JaCoCo XML report path...
+      - mvn sonar:sonar \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
   post_build:
     commands:

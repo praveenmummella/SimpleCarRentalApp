@@ -46,13 +46,14 @@ phases:
       - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
 
 
-      - echo "Sending SNS notification with zipped report..."
+      - echo "Sending combined SNS notification with both report links..."
       - |
-       export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL \n\n Dependency-Check Report (SCA): $SCA_URL""
-         aws sns publish \
-           --topic-arn "$SNS_TOPIC_ARN" \
-           --subject "✅ CodeBuild Success: JaCoCo Zipped Report" \
-           --message "$MESSAGE"
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check Report (SCA): $SCA_URL"
+        aws sns publish \
+          --topic-arn "$SNS_TOPIC_ARN" \
+          --subject "✅ CodeBuild Success: All Reports Ready" \
+          --message "$MESSAGE"
+
 
 reports:
   jacoco:

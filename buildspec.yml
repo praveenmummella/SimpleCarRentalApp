@@ -16,21 +16,18 @@ phases:
       - apt-get install -y unzip wget zip
       - wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
       - unzip dependency-check-8.4.0-release.zip -d /opt
+      - mv /opt/dependency-check* /opt/dependency-check
 
   pre_build:
     commands:
       - echo Running OWASP Dependency-Check...
-        pre_build:
-    commands:
-      - echo Running OWASP Dependency-Check...
-      - |
-        /opt/dependency-check/bin/dependency-check.sh \
-          --project "SimpleCarRentalApp" \
-          --scan . \
-          --format HTML \
-          --out $REPORT_PATH/dependency-check \
-          --disableCentral
-
+      - >
+        /opt/dependency-check/bin/dependency-check.sh
+        --project "SimpleCarRentalApp"
+        --scan .
+        --format HTML
+        --out $REPORT_PATH/dependency-check
+        --disableCentral
 
   build:
     commands:
@@ -55,15 +52,13 @@ phases:
       - echo "Generating presigned URL for Dependency-Check (SCA) report..."
       - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
 
-
       - echo "Sending combined SNS notification with both report links..."
-      - |
-        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check Report (SCA): $SCA_URL"
+      - >
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check Report (SCA): $SCA_URL" && 
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: All Reports Ready" \
           --message "$MESSAGE"
-
 
 reports:
   jacoco:

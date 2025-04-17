@@ -42,6 +42,10 @@ phases:
       - echo "Generating presigned URL for zipped report..."
       - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --expires-in 86400)
 
+      - echo "Generating presigned URL for Dependency-Check (SCA) report..."
+      - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
+
+
       - echo "Sending SNS notification with zipped report..."
       - |
         export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL"

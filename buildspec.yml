@@ -17,9 +17,10 @@ phases:
       - wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
       - unzip dependency-check-8.4.0-release.zip -d /opt
 
-  pre_build:
+    pre_build:
     commands:
       - echo Running OWASP Dependency-Check...
+      - export NVD_API_KEY=$(aws ssm get-parameter --name /devsecops/nvd/apikey --with-decryption --query "Parameter.Value" --output text)
       - >
         /opt/dependency-check/bin/dependency-check.sh
         --project "SimpleCarRentalApp"
@@ -27,6 +28,7 @@ phases:
         --format HTML
         --out $REPORT_PATH/dependency-check
         --disableCentral
+        --nvdApiKey $NVD_API_KEY
 
   build:
     commands:

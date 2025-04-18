@@ -34,31 +34,28 @@ phases:
 
   build:
     commands:
-        - echo Running Maven Build with JaCoCo...
-        - mvn clean verify
-    
-        - echo Fetching SonarCloud token from AWS SSM Parameter Store...
-        - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
-    
-        - echo Resolving Git branch for SonarCloud...
-        - |
-          if [[ "$CODEBUILD_SOURCE_VERSION" == refs/heads/* ]]; then
-            export BRANCH_NAME=$(echo $CODEBUILD_SOURCE_VERSION | sed 's#refs/heads/##')
-          else
-            export BRANCH_NAME="main"
-          fi
-        - echo Using branch: $BRANCH_NAME
-    
-        - echo Running SonarCloud analysis...
-        - |
-          mvn sonar:sonar \
-            -Dsonar.projectKey=SimpleCarRentalApp \
-            -Dsonar.organization=praveenmummella \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.branch.name=$BRANCH_NAME || echo "SonarCloud analysis failed, continuing..."
+      - echo Running Maven Build with JaCoCo...
+      - mvn clean verify
 
+      - echo Fetching SonarCloud token from AWS SSM Parameter Store...
+      - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
+
+      - echo Resolving Git branch for SonarCloud...
+      - |
+        if [[ "$CODEBUILD_SOURCE_VERSION" == refs/heads/* ]]; then
+          export BRANCH_NAME=$(echo $CODEBUILD_SOURCE_VERSION | sed 's#refs/heads/##')
+        else
+          export BRANCH_NAME="main"
+        fi
+        echo Using branch: $BRANCH_NAME
+
+        mvn sonar:sonar \
+          -Dsonar.projectKey=SimpleCarRentalApp \
+          -Dsonar.organization=praveenmummella \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+          -Dsonar.branch.name=$BRANCH_NAME || echo "SonarCloud analysis failed, continuing..."
 
   post_build:
     commands:
@@ -80,7 +77,7 @@ phases:
 
       - echo "Sending combined SNS notification..."
       - >
-        export MESSAGE="✅ CodeBuild completed for SimpleCarRentalApp.\n\n📦 JaCoCo Report: $JACOCO_ZIP_URL\n\n🔍 Dependency-Check (SCA): $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp" && 
+        export MESSAGE="✅ CodeBuild completed for SimpleCarRentalApp.\n\n📦 JaCoCo Report: $JACOCO_ZIP_URL\n\n🔍 Dependency-Check (SCA): $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp" &&
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: All Reports Ready" \

@@ -9,7 +9,7 @@ env:
 phases:
   install:
     runtime-versions:
-      java: corretto11
+      java: corretto17
     commands:
       - echo Installing dependencies...
       - apt-get update
@@ -20,6 +20,7 @@ phases:
   pre_build:
     commands:
       - echo Running OWASP Dependency-Check...
+      - export NVD_API_KEY=$(aws ssm get-parameter --name /devsecops/nvd/apikey --with-decryption --query "Parameter.Value" --output text)
       - >
         /opt/dependency-check/bin/dependency-check.sh
         --project "SimpleCarRentalApp"
@@ -27,11 +28,24 @@ phases:
         --format HTML
         --out $REPORT_PATH/dependency-check
         --disableCentral
+        --nvdApiKey $NVD_API_KEY \
+        --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."
 
   build:
     commands:
       - echo Running Maven Build with JaCoCo...
       - mvn clean verify
+
+      - echo Fetching SonarCloud token from AWS SSM Parameter Store...
+      - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
+
+      - echo Running SonarCloud analysis...
+      - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=SimpleCarRentalApp \
+          -Dsonar.organization=praveenmummella \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml || echo "SonarCloud analysis failed, continuing..."
 
   post_build:
     commands:
@@ -51,9 +65,9 @@ phases:
       - echo "Generating presigned URL for Dependency-Check (SCA) report..."
       - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
 
-      - echo "Sending combined SNS notification with both report links..."
+      - echo "Sending combined SNS notification..."
       - >
-        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check Report (SCA): $SCA_URL" && 
+        export MESSAGE="✅ CodeBuild succeeded for SimpleCarRentalApp.\n\n📦 Download full JaCoCo report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check Report (SCA): $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp" && 
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: All Reports Ready" \

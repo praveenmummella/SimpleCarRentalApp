@@ -21,7 +21,7 @@
         <!-- ✅ SonarCloud SAST -->
         <sonar.projectKey>SimpleCarRentalApp</sonar.projectKey>
         <sonar.organization>praveenmummella</sonar.organization>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>     
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <build>
@@ -48,7 +48,7 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo Plugin -->
+            <!-- ✅ JaCoCo Plugin with XML report for SonarCloud -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -66,8 +66,6 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
-                </executions>
-                <!-- ✅ XML report generation -->
                     <execution>
                         <id>report-xml</id>
                         <phase>verify</phase>
@@ -82,7 +80,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>     
             </plugin>
 
             <!-- Surefire Plugin for JUnit 5 -->
@@ -100,13 +97,13 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.10.0.2594</version>
-            </plugin>     
+            </plugin>
 
         </plugins>
     </build>
 
     <dependencies>
-        <!-- ✅ CORRECT Servlet API for javax.servlet -->
+        <!-- Servlet API -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -114,7 +111,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JUnit 5 for unit testing -->
+        <!-- JUnit 5 -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

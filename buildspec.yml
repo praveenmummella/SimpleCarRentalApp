@@ -75,18 +75,12 @@ phases:
 
       - echo "Sending formatted SNS notification..."
       - |
-        export MESSAGE="✅ CodeBuild completed for *SimpleCarRentalApp* ✅
-
-📦 JaCoCo Report (ZIP): $JACOCO_ZIP_URL
-
-🔍 Dependency-Check (SCA): $SCA_URL
-
-🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp"
-
+        MESSAGE="✅ CodeBuild completed for *SimpleCarRentalApp* ✅\n\n📦 JaCoCo Report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Dependency-Check (SCA): $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp"
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: DevSecOps Reports Ready" \
           --message "$MESSAGE"
+
 
 reports:
   jacoco:

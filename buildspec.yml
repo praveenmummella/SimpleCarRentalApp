@@ -27,7 +27,7 @@ phases:
         --project "SimpleCarRentalApp" \
         --scan . \
         --format HTML \
-        --out dependency-check \
+        --out $REPORT_PATH/dependency-check \
         --disableCentral \
         --nvdApiKey $NVD_API_KEY \
         --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."

@@ -62,7 +62,7 @@ phases:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
       - aws s3 cp $REPORT_PATH/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
-      
+
       - echo "Zipping JaCoCo report..."
       - zip -r jacoco-report.zip target/site/jacoco/
 
@@ -74,19 +74,19 @@ phases:
       - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)
 
       - echo "Sending formatted SNS notification..."
-      - >
+      - |
         export MESSAGE="✅ CodeBuild completed for *SimpleCarRentalApp* ✅
 
 📦 JaCoCo Report (ZIP): $JACOCO_ZIP_URL
 
 🔍 Dependency-Check (SCA): $SCA_URL
 
-🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp" && 
+🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp"
+
         aws sns publish \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: DevSecOps Reports Ready" \
           --message "$MESSAGE"
-
 
 reports:
   jacoco:

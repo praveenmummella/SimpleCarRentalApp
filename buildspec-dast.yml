@@ -12,7 +12,8 @@ phases:
       java: corretto17
     commands:
       - echo Docker is preinstalled and available.
-
+      - docker --version
+      - docker ps
 
   pre_build:
     commands:

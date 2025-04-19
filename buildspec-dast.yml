@@ -8,11 +8,10 @@ env:
 
 phases:
   install:
+    runtime-versions:
+      java: corretto17
     commands:
-      - echo Installing Docker...
-      - apt-get update -y
-      - apt-get install -y docker.io
-      - service docker start || systemctl start docker
+      - echo Docker is preinstalled and available.
 
 
   pre_build:

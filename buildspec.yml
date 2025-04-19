@@ -91,6 +91,6 @@ reports:
 
 artifacts:
   files:
-    - target/*.war
-    - target/site/jacoco/**/*
-  discard-paths: no
+    - target/ROOT.war
+  discard-paths: yes
+

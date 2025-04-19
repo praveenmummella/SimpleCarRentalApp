@@ -10,9 +10,10 @@ phases:
   install:
     commands:
       - echo Installing Docker...
-      - yum update -y
-      - yum install -y docker
-      - service docker start
+      - apt-get update -y
+      - apt-get install -y docker.io
+      - service docker start || systemctl start docker
+
 
   pre_build:
     commands:

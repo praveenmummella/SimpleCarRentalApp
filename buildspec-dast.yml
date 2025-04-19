@@ -26,7 +26,7 @@ phases:
       - echo Uploading ZAP report to S3...
       - aws s3 cp zap-report/zap-report.html s3://$REPORT_BUCKET/$REPORT_PATH/zap-report.html --sse AES256
 
-      - echo Generating presigned URL...
+      - echo Generating presigned URL for ZAP report...
       - export ZAP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/zap-report.html --expires-in 86400)
 
       - echo Sending SNS Notification...
@@ -37,11 +37,12 @@ phases:
           --subject "⚠️ DAST Scan Completed (ZAP)" \
           --message "$MESSAGE"
 
-      - echo Invoking Lambda to forward reports to Security Hub...
-      - aws lambda invoke \
+      - echo Invoking Lambda to send all DevSecOps reports to Security Hub...
+      - |
+        aws lambda invoke \
           --function-name SendReportsToSecurityHub \
           --invocation-type Event \
           --region us-east-1 \
           --payload '{}' \
           output.json
-      - echo Lambda triggered for DAST stage.
+      - echo Lambda invoked successfully after DAST stage.

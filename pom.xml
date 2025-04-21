@@ -25,6 +25,8 @@
     </properties>
 
     <build>
+        <finalName>ROOT</finalName> <!-- ✅ Ensures WAR is deployed as ROOT.war -->
+
         <plugins>
 
             <!-- Maven Compiler Plugin -->
@@ -44,11 +46,13 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
                 <configuration>
+                    <warSourceDirectory>src/main/webapp</warSourceDirectory>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
 
-            <!-- ✅ JaCoCo Plugin with XML report for SonarCloud -->
+            <!-- ✅ JaCoCo Plugin -->
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -82,7 +86,7 @@
                 </executions>
             </plugin>
 
-            <!-- Surefire Plugin for JUnit 5 -->
+            <!-- Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -92,7 +96,8 @@
                 </configuration>
             </plugin>
 
-            <!-- SonarCloud Plugin -->
+
+            <!-- SonarCloud -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>

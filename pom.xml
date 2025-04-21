@@ -52,6 +52,7 @@
             </plugin>
 
             <!-- ✅ JaCoCo Plugin -->
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -94,6 +95,7 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
+
 
             <!-- SonarCloud -->
             <plugin>

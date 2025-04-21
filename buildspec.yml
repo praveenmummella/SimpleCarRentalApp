@@ -39,7 +39,6 @@ phases:
 
       - echo Fetching SonarCloud token from AWS SSM Parameter Store...
       - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
-
       - echo Resolving Git branch for SonarCloud...
       - |
         if [[ "$CODEBUILD_SOURCE_VERSION" == refs/heads/* ]]; then
@@ -68,7 +67,7 @@ phases:
 
       - echo "Uploading zipped report to S3..."
       - aws s3 cp jacoco-report.zip s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --sse AES256
-
+      
       - echo "Generating presigned URLs..."
       - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --expires-in 86400)
       - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/dependency-check-report.html --expires-in 86400)

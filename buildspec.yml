@@ -60,7 +60,7 @@ phases:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
-      - aws s3 cp $REPORT_PATH/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
+      - aws s3 cp $REPORT_PATH/dependency-check/dependency-check-report.html s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check-report.html --sse AES256
 
       - echo "Zipping JaCoCo report..."
       - zip -r jacoco-report.zip target/site/jacoco/

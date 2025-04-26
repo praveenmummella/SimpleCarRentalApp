@@ -21,7 +21,7 @@ phases:
     commands:
       - echo Running OWASP Dependency-Check...
       - export NVD_API_KEY=$(aws ssm get-parameter --name /devsecops/nvd/apikey --with-decryption --query "Parameter.Value" --output text)
-      - mkdir -p $REPORT_PATH/dependency-check
+      - mkdir -p SimpleCarRentalApp-P/reports/dependency-check
       - |
         /opt/dependency-check/bin/dependency-check.sh \
         --project "SimpleCarRentalApp" \
@@ -60,7 +60,7 @@ phases:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
-      - aws s3 cp $REPORT_PATH/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
+      - aws s3 cp SimpleCarRentalApp-P/reports/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
 
       - echo "Zipping JaCoCo report..."
       - zip -r jacoco-report.zip target/site/jacoco/

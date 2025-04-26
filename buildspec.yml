@@ -27,7 +27,7 @@ phases:
         --project "SimpleCarRentalApp" \
         --scan . \
         --format HTML \
-        --out $REPORT_PATH/dependency-check \
+        --out dependency-check \
         --disableCentral \
         --nvdApiKey $NVD_API_KEY \
         --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."
@@ -60,7 +60,7 @@ phases:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
-      - aws s3 cp SimpleCarRentalApp-P/reports/dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
+      - aws s3 cp dependency-check/ s3://$REPORT_BUCKET/$REPORT_PATH/dependency-check/ --recursive --sse AES256
 
       - echo "Zipping JaCoCo report..."
       - zip -r jacoco-report.zip target/site/jacoco/

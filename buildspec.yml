@@ -21,7 +21,7 @@ phases:
     commands:
       - echo Running OWASP Dependency-Check...
       - export NVD_API_KEY=$(aws ssm get-parameter --name /devsecops/nvd/apikey --with-decryption --query "Parameter.Value" --output text)
-      - mkdir -p SimpleCarRentalApp-P/reports/dependency-check
+      - mkdir -p dependency-check
       - |
         /opt/dependency-check/bin/dependency-check.sh \
         --project "SimpleCarRentalApp" \

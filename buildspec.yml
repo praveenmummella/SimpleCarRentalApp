@@ -63,8 +63,8 @@ phases:
       - aws s3 cp jacoco-report.zip s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --sse AES256
       
       - echo "Generating presigned URLs..."
-      - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --expires-in 86400)
-      - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/trivy-sca/trivy-scan-report.json --expires-in 86400)
+      - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --expires-in 86400 --region us-east-1)
+      - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/trivy-sca/trivy-scan-report.json --expires-in 86400 --region us-east-1)
 
       - echo "Sending formatted SNS notification..."
       - |

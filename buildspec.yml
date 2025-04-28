@@ -20,20 +20,7 @@ phases:
 pre_build:
   commands:
     - echo Running OWASP Dependency-Check...
-    - export NVD_API_KEY=$(aws ssm get-parameter --name /devsecops/nvd/apikey --with-decryption --query "Parameter.Value" --output text)
-    - mkdir -p dependency-check
-    - |
-      set -x
-      /opt/dependency-check/bin/dependency-check.sh \
-      --project "SimpleCarRentalApp" \
-      --scan . \
-      --format HTML \
-      --out dependency-check \
-      --disableCentral \
-      --nvdApiKey $NVD_API_KEY \
-      --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."
-    - echo "Contents of dependency-check directory:"
-    - ls -l dependency-check
+    - /opt/dependency-check/bin/dependency-check.sh --project "SimpleCarRentalApp" --scan . --format HTML --out $REPORT_PATH/dependency-check
 
   build:
     commands:

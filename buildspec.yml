@@ -30,6 +30,7 @@ phases:
         --out $REPORT_PATH/dependency-check \
         --disableCentral \
         --nvdApiKey $NVD_API_KEY \
+        --nvdApiDelay 6000 \
         --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."
 
   build:

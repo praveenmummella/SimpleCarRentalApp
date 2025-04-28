@@ -20,13 +20,14 @@ phases:
       - mkdir -p vulnerable-jars
       - wget -O vulnerable-jars/log4j-core-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
 
-  pre_build: 
+  pre_build:
     commands:
       - echo Running Trivy SCA Scan...
+      - mkdir -p target
       - mkdir -p trivy-reports
-      - ./bin/trivy fs vulnerable-jars/ --format template --template "@/contrib/html.tpl" -o trivy-reports/trivy-scan-report.html || echo "Trivy scan completed with warnings, continuing..."
-      - echo "Contents of trivy-reports directory:"
-      - ls -l trivy-reports
+      - wget https://vulnerable-jars.s3.amazonaws.com/vulnerable-log4j-app.jar -O target/vulnerable-log4j-app.jar
+      - ./trivy fs target/ --format template --template "@/contrib/html.tpl" -o trivy-reports/trivy-scan-report.html || echo "Trivy scan completed with warnings, continuing..."
+
 
   build:
     commands:

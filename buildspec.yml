@@ -13,13 +13,19 @@ phases:
     commands:
       - echo Installing dependencies...
       - apt-get update
-      - apt-get install -y unzip wget zip
+      - apt-get install -y unzip wget zip curl
       - echo Installing Trivy...
       - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+      - echo "Creating target/ folder..."
+      - mkdir -p target
+      - echo "Downloading vulnerable Log4j JAR into target/..."
+      - wget https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar -O target/log4j-core-2.14.1.jar
 
   pre_build:
     commands:
-      - echo Pre-Build stage - nothing for SCA here
+      - echo Running Trivy SCA Scan...
+      - mkdir -p trivy-reports
+      - ./bin/trivy fs target/ --format json -o trivy-reports/trivy-scan-report.json || echo "Trivy scan completed with warnings, continuing..."
 
   build:
     commands:
@@ -28,6 +34,7 @@ phases:
 
       - echo Fetching SonarCloud token from AWS SSM Parameter Store...
       - export SONAR_TOKEN=$(aws ssm get-parameter --name /devsecops/sonar/token --with-decryption --query "Parameter.Value" --output text)
+
       - echo Resolving Git branch for SonarCloud...
       - |
         if [[ "$CODEBUILD_SOURCE_VERSION" == refs/heads/* ]]; then
@@ -37,7 +44,7 @@ phases:
         fi
         echo Using branch: $BRANCH_NAME
 
-      - mvn sonar:sonar \
+        mvn sonar:sonar \
           -Dsonar.projectKey=SimpleCarRentalApp \
           -Dsonar.organization=praveenmummella \
           -Dsonar.host.url=https://sonarcloud.io \
@@ -47,10 +54,6 @@ phases:
 
   post_build:
     commands:
-      - echo Running Trivy SCA Scan after build...
-      - mkdir -p trivy-reports
-      - ./bin/trivy fs target/ --scanners vuln --format json -o trivy-reports/trivy-scan-report.json || echo "Trivy scan completed with warnings, continuing..."
-
       - echo "Uploading JaCoCo and Trivy SCA reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
       - aws s3 cp trivy-reports/ s3://$REPORT_BUCKET/$REPORT_PATH/trivy-sca/ --recursive --sse AES256
@@ -76,11 +79,11 @@ phases:
       - echo "Invoking Lambda to send reports to Security Hub..."
       - |
         aws lambda invoke \
-          --function-name SendReportsToSecurityHub \
-          --invocation-type Event \
-          --region us-east-1 \
-          --payload '{}' \
-          output.json
+        --function-name SendReportsToSecurityHub \
+        --invocation-type Event \
+        --region us-east-1 \
+        --payload '{}' \
+        output.json
       - echo "Lambda invoked successfully."
 
 reports:

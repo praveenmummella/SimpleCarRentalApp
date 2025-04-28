@@ -63,12 +63,13 @@ phases:
       - aws s3 cp jacoco-report.zip s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --sse AES256
       
       - echo "Invoking Lambda to generate Presigned URLs..."
-      - aws lambda invoke \
-        --function-name GeneratePresignedUrls \
-        --invocation-type RequestResponse \
-        --region us-east-1 \
-        --payload '{}' \
-        output.json
+      - |
+        aws lambda invoke \
+          --function-name GeneratePresignedUrls \
+          --invocation-type RequestResponse \
+          --region us-east-1 \
+          --payload '{}' output.json
+      - echo "Lambda invoked successfully."
 
       - echo "Parsing URLs from Lambda output..."
       - export JACOCO_ZIP_URL=$(cat output.json | jq -r '.body' | jq -r '."SimpleCarRentalApp-P/reports/jacoco-report.zip"')

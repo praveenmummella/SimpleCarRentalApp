@@ -64,10 +64,11 @@ phases:
       
       - echo "Invoking Lambda to generate Presigned URLs..."
       - aws lambda invoke \
-          --function-name GeneratePresignedUrls \
-          --invocation-type RequestResponse \
-          --region us-east-1 \
-          output.json
+        --function-name GeneratePresignedUrls \
+        --invocation-type RequestResponse \
+        --region us-east-1 \
+        --payload '{}' \
+        output.json
 
       - echo "Parsing URLs from Lambda output..."
       - export JACOCO_ZIP_URL=$(cat output.json | jq -r '.body' | jq -r '."SimpleCarRentalApp-P/reports/jacoco-report.zip"')

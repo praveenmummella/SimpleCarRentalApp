@@ -16,15 +16,12 @@ phases:
       - apt-get install -y unzip wget zip
       - echo Installing Trivy...
       - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-      - echo Creating target folder and downloading vulnerable JAR...
-      - mkdir -p target
-      - wget -O target/log4j-core-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
 
   pre_build:
     commands:
       - echo Running Trivy SCA Scan...
       - mkdir -p trivy-reports
-      - ./bin/trivy fs --scanners vuln target/log4j-core-2.14.1.jar --format json -o trivy-reports/trivy-scan-report.json || echo "Trivy scan completed with warnings, continuing..."
+      - ./bin/trivy fs . --format json -o trivy-reports/trivy-scan-report.json || echo "Trivy scan completed with warnings, continuing..."
 
   build:
     commands:
@@ -61,7 +58,7 @@ phases:
 
       - echo "Uploading zipped report to S3..."
       - aws s3 cp jacoco-report.zip s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --sse AES256
-      
+
       - echo "Generating presigned URLs..."
       - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --expires-in 86400)
       - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/trivy-sca/trivy-scan-report.json --expires-in 86400)

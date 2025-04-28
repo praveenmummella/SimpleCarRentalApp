@@ -26,7 +26,7 @@ phases:
       - mkdir -p target
       - mkdir -p trivy-reports
       - wget https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar -O target/log4j-core-2.14.1.jar
-      - ./trivy fs target/ --format template --template "@/contrib/html.tpl" -o trivy-reports/trivy-scan-report.html || echo "Trivy scan completed with warnings, continuing..."
+      - ./trivy fs target/ --format json -o trivy-reports/trivy-scan-report.json || echo "Trivy scan completed with warnings, continuing..."
 
 
   build:

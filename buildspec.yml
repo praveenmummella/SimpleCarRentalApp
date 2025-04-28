@@ -87,7 +87,7 @@ phases:
         --invocation-type Event \
         --region us-east-1 \
         --payload '{}' \
-        --output.json
+        output.json
       - echo "Lambda invoked successfully." 
 
 

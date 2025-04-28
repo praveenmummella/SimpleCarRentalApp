@@ -56,7 +56,7 @@ phases:
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
           -Dsonar.branch.name=$BRANCH_NAME || echo "SonarCloud analysis failed, continuing..."
 
-   post_build:
+  post_build:
     commands:
       - echo "Uploading JaCoCo and Dependency-Check reports to S3 with encryption..."
       - aws s3 cp target/site/jacoco/ s3://$REPORT_BUCKET/$REPORT_PATH/jacoco/ --recursive --sse AES256
@@ -88,7 +88,7 @@ phases:
         --region us-east-1 \
         --payload '{}' \
         --output.json
-      - echo "Lambda invoked successfully."
+      - echo "Lambda invoked successfully." 
 
 
 

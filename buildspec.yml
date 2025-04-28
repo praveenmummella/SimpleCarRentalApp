@@ -25,8 +25,9 @@ phases:
       - echo Running Trivy SCA Scan...
       - mkdir -p target
       - mkdir -p trivy-reports
-      - wget https://vulnerable-jars.s3.amazonaws.com/vulnerable-log4j-app.jar -O target/vulnerable-log4j-app.jar
+      - wget https://github.com/madhuakula/log4j-jndi-exploit-detection/raw/main/resources/vulnerable-log4j-app.jar -O target/vulnerable-log4j-app.jar
       - ./trivy fs target/ --format template --template "@/contrib/html.tpl" -o trivy-reports/trivy-scan-report.html || echo "Trivy scan completed with warnings, continuing..."
+
 
 
   build:

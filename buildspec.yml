@@ -21,7 +21,9 @@ phases:
     commands:
       - echo Running Trivy SCA Scan...
       - mkdir -p trivy-reports
-      - ./trivy fs . --format template --template "@/contrib/html.tpl" -o trivy-reports/trivy-scan-report.html || echo "Trivy scan completed with warnings, continuing..."
+      - ./bin/trivy fs . --format template --template "@/contrib/html.tpl" -o trivy-reports/trivy-scan-report.html || echo "Trivy scan completed with warnings, continuing..."
+      - echo "Contents of trivy-reports directory:"
+      - ls -l trivy-reports
 
   build:
     commands:

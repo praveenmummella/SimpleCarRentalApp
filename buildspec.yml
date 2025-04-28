@@ -18,17 +18,18 @@ phases:
       - unzip dependency-check-9.0.9-release.zip -d /opt
 
   pre_build: 
-  commands:
-    - echo Running OWASP Dependency-Check...
-    - mkdir -p $REPORT_PATH/dependency-check
-    - |
-      /opt/dependency-check/bin/dependency-check.sh \
-      --project "SimpleCarRentalApp" \
-      --scan . \
-      --format HTML \
-      --out $REPORT_PATH/dependency-check \
-      --disableCentral \
-      --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."
+    commands:
+      - echo Running OWASP Dependency-Check...
+      - mkdir -p $REPORT_PATH/dependency-check
+      - |
+        /opt/dependency-check/bin/dependency-check.sh \
+        --project "SimpleCarRentalApp" \
+        --scan . \
+        --format HTML \
+        --out $REPORT_PATH/dependency-check \
+        --disableCentral \
+        --failOnCVSS 11 || echo "Dependency-Check completed with non-zero exit, continuing..."
+
 
   build:
     commands:

@@ -13,7 +13,7 @@ phases:
     commands:
       - echo Installing dependencies...
       - apt-get update
-      - apt-get install -y unzip wget zip curl jq
+      - apt-get install -y unzip wget zip curl
       - echo Installing Trivy...
       - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
       - echo Preparing vulnerable JAR for scanning...
@@ -62,31 +62,28 @@ phases:
       - echo "Uploading zipped report to S3..."
       - aws s3 cp jacoco-report.zip s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --sse AES256
       
-      - echo "Invoking Lambda to generate Presigned URLs..."
-      - |
-        aws lambda invoke \
-          --function-name GeneratePresignedUrls \
-          --invocation-type RequestResponse \
-          --region us-east-1 \
-          --payload '{}' output.json
-      - echo "Lambda invoked successfully."
-
-      - echo "Parsing URLs from Lambda output..."
-      - export JACOCO_ZIP_URL=$(cat output.json | jq -r '.body' | jq -r '."SimpleCarRentalApp-P/reports/jacoco-report.zip"')
-      - export SCA_URL=$(cat output.json | jq -r '.body' | jq -r '."SimpleCarRentalApp-P/reports/trivy-sca/trivy-scan-report.json"')
+      - echo "Generating presigned URLs..."
+      - export JACOCO_ZIP_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/jacoco-report.zip --region us-east-1 --expires-in 86400)
+      - export SCA_URL=$(aws s3 presign s3://$REPORT_BUCKET/$REPORT_PATH/trivy-sca/trivy-scan-report.json --region us-east-1 --expires-in 86400)
 
       - echo "Sending formatted SNS notification..."
       - |
-        MESSAGE="✅ CodeBuild completed for *SimpleCarRentalApp* ✅\n\n📦 JaCoCo Report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Trivy Dependency-Check (SCA): $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp"
+        MESSAGE="✅ CodeBuild completed for *SimpleCarRentalApp* ✅\n\n📦 JaCoCo Report (ZIP): $JACOCO_ZIP_URL\n\n🔍 Trivy SCA Report: $SCA_URL\n\n🔐 SonarCloud Dashboard: https://sonarcloud.io/project/overview?id=SimpleCarRentalApp"
         aws sns publish \
+          --region us-east-1 \
           --topic-arn "$SNS_TOPIC_ARN" \
           --subject "✅ CodeBuild Success: DevSecOps Reports Ready" \
           --message "$MESSAGE"
 
-artifacts:
-  files:
-    - target/ROOT.war
-  discard-paths: yes
+      - echo "Invoking Lambda to send report to Security Hub..."
+      - |
+        aws lambda invoke \
+          --function-name SendReportsToSecurityHub \
+          --region us-east-1 \
+          --invocation-type Event \
+          --payload '{}' \
+          output.json
+      - echo "Lambda invoked successfully."
 
 reports:
   jacoco:
@@ -94,3 +91,8 @@ reports:
       - target/site/jacoco/index.html
     base-directory: target/site/jacoco
     discard-paths: yes
+
+artifacts:
+  files:
+    - target/ROOT.war
+  discard-paths: yes
